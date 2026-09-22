@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-baseline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: baseline
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: baseline
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: tcp-postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: poc
+            - name: POSTGRES_PASSWORD
+              value: poc
+            - name: POSTGRES_DB
+              value: catalog
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-baseline
+spec:
+  selector:
+    app: postgres
+    version: baseline
+  ports:
+    - name: tcp-postgres
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-sandbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+      version: sandbox
+  template:
+    metadata:
+      labels:
+        app: postgres
+        version: sandbox
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: tcp-postgres
+              containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: poc
+            - name: POSTGRES_PASSWORD
+              value: poc
+            - name: POSTGRES_DB
+              value: catalog
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-sandbox
+spec:
+  selector:
+    app: postgres
+    version: sandbox
+  ports:
+    - name: tcp-postgres
+      port: 5432
+      targetPort: 5432

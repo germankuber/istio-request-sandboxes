@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-c-baseline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-c
+      version: baseline
+  template:
+    metadata:
+      labels:
+        app: service-c
+        version: baseline
+    spec:
+      containers:
+        - name: service-c
+          image: service-c:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: VERSION
+              value: baseline
+            - name: DATABASE_URL
+              value: postgresql://poc:poc@postgres-baseline:5432/catalog
+            - name: DB_PEER_SERVICE
+              value: postgres-baseline
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-c-sandbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-c
+      version: sandbox
+  template:
+    metadata:
+      labels:
+        app: service-c
+        version: sandbox
+    spec:
+      containers:
+        - name: service-c
+          image: service-c:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: VERSION
+              value: sandbox
+            - name: DATABASE_URL
+              value: postgresql://poc:poc@postgres-sandbox:5432/catalog
+            - name: DB_PEER_SERVICE
+              value: postgres-sandbox
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317

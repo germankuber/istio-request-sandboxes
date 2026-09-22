@@ -1,0 +1,25 @@
+services:
+  service-a:
+    build: ./service-a
+    ports:
+      - "8000:8000"
+    environment:
+      VERSION: baseline
+      SERVICE_B_URL: http://service-b:8000
+
+  service-b:
+    build: ./service-b
+    environment:
+      VERSION: baseline
+      SERVICE_C_URL: http://service-c:8000
+      SERVICE_D_URL: http://service-d:8000
+
+  service-c:
+    build: ./service-c
+    environment:
+      VERSION: baseline
+
+  service-d:
+    build: ./service-d
+    environment:
+      VERSION: baseline

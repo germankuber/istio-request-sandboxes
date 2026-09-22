@@ -1,0 +1,36 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: service-c
+spec:
+  host: service-c
+  subsets:
+    - name: baseline
+      labels:
+        version: baseline
+    - name: sandbox
+      labels:
+        version: sandbox
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: service-c
+spec:
+  hosts:
+    - service-c
+  http:
+    - name: sandbox-route
+      match:
+        - headers:
+            x-sandbox-id:
+              exact: test-123
+      route:
+        - destination:
+            host: service-c
+            subset: sandbox
+    - name: baseline-route
+      route:
+        - destination:
+            host: service-c
+            subset: baseline

@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b-baseline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+      version: baseline
+  template:
+    metadata:
+      labels:
+        app: service-b
+        version: baseline
+    spec:
+      containers:
+        - name: service-b
+          image: service-b:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: VERSION
+              value: baseline
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317

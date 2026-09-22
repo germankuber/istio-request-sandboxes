@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-d-baseline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-d
+      version: baseline
+  template:
+    metadata:
+      labels:
+        app: service-d
+        version: baseline
+    spec:
+      containers:
+        - name: service-d
+          image: service-d:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: VERSION
+              value: baseline
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317

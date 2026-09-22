@@ -1,0 +1,36 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata:
+  name: service-e
+spec:
+  host: service-e
+  subsets:
+    - name: baseline
+      labels:
+        version: baseline
+    - name: sandbox
+      labels:
+        version: sandbox
+---
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: service-e
+spec:
+  hosts:
+    - service-e
+  http:
+    - name: sandbox-route
+      match:
+        - headers:
+            x-sandbox-id:
+              exact: test-123
+      route:
+        - destination:
+            host: service-e
+            subset: sandbox
+    - name: baseline-route
+      route:
+        - destination:
+            host: service-e
+            subset: baseline
