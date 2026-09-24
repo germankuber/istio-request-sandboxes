@@ -7,6 +7,7 @@ from telemetry import annotate_sandbox, instrument_app, setup_telemetry
 
 SERVICE_NAME = "E"
 VERSION = os.getenv("VERSION", "baseline")
+DB_SCHEMA = os.getenv("DB_SCHEMA", "legacy")
 SANDBOX_HEADER = "X-Sandbox-ID"
 LOW_STOCK_THRESHOLD = 15
 
@@ -32,7 +33,7 @@ def info(request: Request) -> dict[str, object]:
     sandbox_id = request.headers.get(SANDBOX_HEADER)
     annotate_sandbox(sandbox_id)
 
-    if VERSION == "sandbox":
+    if DB_SCHEMA == "split":
         rows = fetch_products_split()
         products = [{**row, "name": f"{row['brand']} {row['model']}"} for row in rows]
     else:

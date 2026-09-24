@@ -1,0 +1,14 @@
+apiVersion: sandbox.poc/v1
+kind: Sandbox
+metadata:
+  name: team-b
+spec:
+  services:
+    - name: service-d
+  mocks:
+    - host: external-weather
+      method: GET
+      path: /weather
+      status: 200
+      body:
+        temp_c: -40

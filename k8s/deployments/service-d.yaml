@@ -23,5 +23,9 @@ spec:
           env:
             - name: VERSION
               value: baseline
+            - name: EXTERNAL_PAYMENTS_URL
+              value: http://external-payments.external.svc.cluster.local
+            - name: EXTERNAL_WEATHER_URL
+              value: http://external-weather.external.svc.cluster.local
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: http://otel-collector.observability.svc.cluster.local:4317
