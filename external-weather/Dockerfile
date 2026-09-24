@@ -5,7 +5,7 @@ WORKDIR /app
 COPY pyproject.toml .
 RUN uv sync --no-dev
 
-COPY telemetry.py sandbox_propagation.py main.py ./
+COPY main.py ./
 
 EXPOSE 8000
 

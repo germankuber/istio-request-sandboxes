@@ -1,0 +1,25 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: external-payments
+spec:
+  hosts:
+    - external-payments.external.svc.cluster.local
+  http:
+    - name: sandbox-route
+      match:
+        - headers:
+            x-sandbox-id:
+              regex: .+
+      route:
+        - destination:
+            host: mock-proxy.default.svc.cluster.local
+      timeout: 5s
+      retries:
+        attempts: 2
+        perTryTimeout: 2s
+        retryOn: connect-failure,refused-stream,unavailable
+    - name: baseline-route
+      route:
+        - destination:
+            host: external-payments.external.svc.cluster.local

@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-proxy
+  template:
+    metadata:
+      labels:
+        app: mock-proxy
+        version: baseline
+    spec:
+      containers:
+        - name: mock-proxy
+          image: holomekc/wiremock-gui:3.13.211
+          imagePullPolicy: IfNotPresent
+          args: ["--port", "8080", "--global-response-templating", "--verbose"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /__admin/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /__admin/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: catchall-mappings
+              mountPath: /home/wiremock/mappings/external-payments-catchall.json
+              subPath: external-payments-catchall.json
+            - name: catchall-mappings
+              mountPath: /home/wiremock/mappings/external-weather-catchall.json
+              subPath: external-weather-catchall.json
+      volumes:
+        - name: catchall-mappings
+          configMap:
+            name: wiremock-catchall-mappings
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-proxy
+spec:
+  selector:
+    app: mock-proxy
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080

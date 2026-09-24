@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wiremock-catchall-mappings
+data:
+  external-payments-catchall.json: |
+    {
+      "priority": 10,
+      "request": {
+        "method": "ANY",
+        "urlPattern": "/.*",
+        "host": { "contains": "external-payments" }
+      },
+      "response": {
+        "proxyBaseUrl": "http://external-payments-upstream.external.svc.cluster.local",
+        "headers": {
+          "X-Mock-Proxy": "forwarded"
+        }
+      },
+      "metadata": {
+        "managed_by": "catch-all"
+      }
+    }
+  external-weather-catchall.json: |
+    {
+      "priority": 10,
+      "request": {
+        "method": "ANY",
+        "urlPattern": "/.*",
+        "host": { "contains": "external-weather" }
+      },
+      "response": {
+        "proxyBaseUrl": "http://external-weather-upstream.external.svc.cluster.local",
+        "headers": {
+          "X-Mock-Proxy": "forwarded"
+        }
+      },
+      "metadata": {
+        "managed_by": "catch-all"
+      }
+    }

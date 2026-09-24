@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mock-manager-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-manager
+  template:
+    metadata:
+      labels:
+        app: mock-manager
+        version: baseline
+    spec:
+      containers:
+        - name: mock-manager
+          image: mock-manager:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          env:
+            - name: VERSION
+              value: baseline
+            - name: MOCK_MANAGER_DB_PATH
+              value: /data/mock-manager.db
+            - name: WIREMOCK_ADMIN_URL
+              value: http://mock-proxy/__admin
+            - name: RECONCILE_INTERVAL_SECONDS
+              value: "15"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mock-manager-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-manager
+spec:
+  selector:
+    app: mock-manager
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000

@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-payments
+  namespace: external
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: external-payments
+  template:
+    metadata:
+      labels:
+        app: external-payments
+    spec:
+      containers:
+        - name: external-payments
+          image: external-payments:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-payments
+  namespace: external
+spec:
+  selector:
+    app: external-payments
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-payments-upstream
+  namespace: external
+spec:
+  selector:
+    app: external-payments
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
