@@ -2,12 +2,14 @@ FROM node:22-alpine AS build
 
 WORKDIR /app
 
-COPY package.json .
-RUN npm install
+RUN corepack enable && corepack prepare pnpm@10 --activate
 
-COPY index.html vite.config.js ./
+COPY package.json .
+RUN pnpm install
+
+COPY index.html vite.config.ts tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN pnpm run build
 
 FROM nginx:1.27-alpine
 

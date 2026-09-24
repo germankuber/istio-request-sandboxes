@@ -1,0 +1,26 @@
+from typing import Protocol
+
+from domain.rule import ExternalHost, Rule
+from domain.stub import WireMockStub
+
+
+class RuleRepository(Protocol):
+    def list_all(self) -> list[Rule]: ...
+
+    def get(self, rule_id: str) -> Rule | None: ...
+
+    def find_by_key(
+        self, sandbox_id: str, host: ExternalHost, method: str, path: str
+    ) -> Rule | None: ...
+
+    def save(self, rule: Rule) -> None: ...
+
+    def delete(self, rule_id: str) -> None: ...
+
+
+class StubStore(Protocol):
+    def list_managed_stub_ids(self) -> set[str]: ...
+
+    def upsert(self, stub: WireMockStub) -> None: ...
+
+    def delete(self, stub_id: str) -> None: ...

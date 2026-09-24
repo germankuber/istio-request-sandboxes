@@ -7,6 +7,7 @@ from telemetry import annotate_sandbox, instrument_app, setup_telemetry
 
 SERVICE_NAME = "C"
 VERSION = os.getenv("VERSION", "baseline")
+DB_SCHEMA = os.getenv("DB_SCHEMA", "legacy")
 SANDBOX_HEADER = "X-Sandbox-ID"
 
 setup_telemetry(f"service-{SERVICE_NAME.lower()}", VERSION)
@@ -31,7 +32,7 @@ def info(request: Request) -> dict[str, object]:
     sandbox_id = request.headers.get(SANDBOX_HEADER)
     annotate_sandbox(sandbox_id)
 
-    if VERSION == "sandbox":
+    if DB_SCHEMA == "split":
         products = [
             {
                 "id": row["id"],

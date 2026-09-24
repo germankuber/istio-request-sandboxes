@@ -1,0 +1,14 @@
+apiVersion: sandbox.poc/v1
+kind: Sandbox
+metadata:
+  name: team-c
+spec:
+  services:
+    - name: service-c
+      env:
+        - name: DATABASE_URL
+          value: postgresql://poc:poc@postgres-sandbox:5432/catalog
+        - name: DB_PEER_SERVICE
+          value: postgres-sandbox
+        - name: DB_SCHEMA
+          value: split

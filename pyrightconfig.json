@@ -1,0 +1,90 @@
+{
+  "exclude": [
+    "**/.venv",
+    "**/node_modules",
+    "frontend"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "service-a",
+      "extraPaths": [
+        "service-a"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "service-b",
+      "extraPaths": [
+        "service-b"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "service-c",
+      "extraPaths": [
+        "service-c"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "service-d",
+      "extraPaths": [
+        "service-d"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "service-e",
+      "extraPaths": [
+        "service-e"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "external-payments",
+      "extraPaths": [
+        "external-payments"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "external-weather",
+      "extraPaths": [
+        "external-weather"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "mock-manager",
+      "extraPaths": [
+        "mock-manager",
+        "mock-manager/.venv/lib/python3.12/site-packages"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "sandbox-controller",
+      "extraPaths": [
+        "sandbox-controller",
+        "sandbox-controller/.venv/lib/python3.12/site-packages"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "sandbox-api",
+      "extraPaths": [
+        "sandbox-api",
+        "sandbox-api/.venv/lib/python3.12/site-packages"
+      ],
+      "pythonVersion": "3.12"
+    },
+    {
+      "root": "e2e",
+      "extraPaths": [
+        "e2e",
+        "e2e/.venv/lib/python3.12/site-packages"
+      ],
+      "pythonVersion": "3.12"
+    }
+  ]
+}

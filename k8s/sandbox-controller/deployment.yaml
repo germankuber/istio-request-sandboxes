@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sandbox-controller
+  template:
+    metadata:
+      labels:
+        app: sandbox-controller
+    spec:
+      serviceAccountName: sandbox-controller
+      containers:
+        - name: sandbox-controller
+          image: sandbox-controller:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          env:
+            - name: SANDBOX_NAMESPACE
+              value: default
+            - name: MOCK_MANAGER_URL
+              value: http://mock-manager
+            - name: ROUTING_INTERVAL_SECONDS
+              value: "10"
+            - name: NOT_READY_RETRY_SECONDS
+              value: "5"
+            - name: MOCK_GC_INTERVAL_SECONDS
+              value: "30"
