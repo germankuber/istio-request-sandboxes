@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createRule, deleteRule, listExternals, listRules, toggleRule } from "./api";
+import { defaultsForHost, DEFAULT_EXTERNAL_HOST_ID } from "./externalDefaults";
 import type { ExternalHostId, ExternalHostResponse, HttpMethod, Rule, RuleBody } from "./types";
 import { METHODS } from "./types";
 
@@ -11,17 +12,26 @@ interface RuleFormState {
   status: number | string;
   delay_ms: number | string;
   body: string;
+  sandboxIdTouched: boolean;
+  fieldsTouched: boolean;
 }
 
-const EMPTY_FORM: RuleFormState = {
-  sandbox_id: "test-123",
-  host: "external-payments",
-  method: "POST",
-  path: "/charge",
-  status: 402,
-  delay_ms: 0,
-  body: '{\n  "error": "card_declined"\n}',
-};
+type RuleFormTrackedField = "method" | "path" | "status" | "body";
+
+function buildForm(sandboxId: string): RuleFormState {
+  const defaults = defaultsForHost(DEFAULT_EXTERNAL_HOST_ID);
+  return {
+    sandbox_id: sandboxId,
+    host: DEFAULT_EXTERNAL_HOST_ID,
+    method: defaults.method,
+    path: defaults.path,
+    status: defaults.status,
+    delay_ms: 0,
+    body: defaults.body,
+    sandboxIdTouched: false,
+    fieldsTouched: false,
+  };
+}
 
 interface RuleRowProps {
   rule: Rule;
@@ -53,8 +63,9 @@ interface MocksProps {
 export default function Mocks({ initialSandboxId = null }: MocksProps) {
   const [externals, setExternals] = useState<ExternalHostResponse[]>([]);
   const [rules, setRules] = useState<Rule[]>([]);
-  const [form, setForm] = useState<RuleFormState>(EMPTY_FORM);
-  const [filter, setFilter] = useState(initialSandboxId ?? "");
+  const initialFilter = initialSandboxId ?? "";
+  const [form, setForm] = useState<RuleFormState>(() => buildForm(initialFilter));
+  const [filter, setFilter] = useState(initialFilter);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -77,8 +88,31 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
     refresh();
   }, [filter]);
 
-  function updateField<K extends keyof RuleFormState>(field: K, value: RuleFormState[K]) {
-    setForm((previous) => ({ ...previous, [field]: value }));
+  function updateSandboxId(value: string) {
+    setForm((previous) => ({ ...previous, sandbox_id: value, sandboxIdTouched: true }));
+  }
+
+  function updateHost(host: string) {
+    setForm((previous) => {
+      if (previous.fieldsTouched) return { ...previous, host };
+      const defaults = defaultsForHost(host);
+      return {
+        ...previous,
+        host,
+        method: defaults.method,
+        path: defaults.path,
+        status: defaults.status,
+        body: defaults.body,
+      };
+    });
+  }
+
+  function updateTrackedField<K extends RuleFormTrackedField>(field: K, value: RuleFormState[K]) {
+    setForm((previous) => ({ ...previous, [field]: value, fieldsTouched: true }));
+  }
+
+  function updateDelay(value: string) {
+    setForm((previous) => ({ ...previous, delay_ms: value }));
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -101,7 +135,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
         body,
         enabled: true,
       });
-      setForm(EMPTY_FORM);
+      setForm(buildForm(filter));
       await refresh();
     } catch (cause) {
       setError(String(cause));
@@ -136,7 +170,13 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
         filter by sandbox
         <input
           value={filter}
-          onChange={(event) => setFilter(event.target.value)}
+          onChange={(event) => {
+            const value = event.target.value;
+            setFilter(value);
+            setForm((previous) =>
+              previous.sandboxIdTouched ? previous : { ...previous, sandbox_id: value }
+            );
+          }}
           placeholder="all sandboxes"
         />
       </label>
@@ -147,13 +187,13 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
             sandbox id
             <input
               value={form.sandbox_id}
-              onChange={(event) => updateField("sandbox_id", event.target.value)}
+              onChange={(event) => updateSandboxId(event.target.value)}
               required
             />
           </label>
           <label>
             host
-            <select value={form.host} onChange={(event) => updateField("host", event.target.value)}>
+            <select value={form.host} onChange={(event) => updateHost(event.target.value)}>
               {(externals.length > 0
                 ? externals
                 : [{ id: "external-payments" }, { id: "external-weather" }]
@@ -168,7 +208,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
             method
             <select
               value={form.method}
-              onChange={(event) => updateField("method", event.target.value as HttpMethod)}
+              onChange={(event) => updateTrackedField("method", event.target.value as HttpMethod)}
             >
               {METHODS.map((method) => (
                 <option key={method} value={method}>
@@ -181,7 +221,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
             path
             <input
               value={form.path}
-              onChange={(event) => updateField("path", event.target.value)}
+              onChange={(event) => updateTrackedField("path", event.target.value)}
               required
             />
           </label>
@@ -190,7 +230,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
             <input
               type="number"
               value={form.status}
-              onChange={(event) => updateField("status", event.target.value)}
+              onChange={(event) => updateTrackedField("status", event.target.value)}
             />
           </label>
           <label>
@@ -198,7 +238,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
             <input
               type="number"
               value={form.delay_ms}
-              onChange={(event) => updateField("delay_ms", event.target.value)}
+              onChange={(event) => updateDelay(event.target.value)}
             />
           </label>
         </div>
@@ -206,7 +246,7 @@ export default function Mocks({ initialSandboxId = null }: MocksProps) {
           response body (JSON)
           <textarea
             value={form.body}
-            onChange={(event) => updateField("body", event.target.value)}
+            onChange={(event) => updateTrackedField("body", event.target.value)}
             rows={5}
           />
         </label>

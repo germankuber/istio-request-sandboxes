@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { createSandbox } from "../api";
+import { defaultsForHost, DEFAULT_EXTERNAL_HOST_ID } from "../externalDefaults";
 import type {
   EnvVarRequest,
   ExternalHostResponse,
@@ -28,7 +29,10 @@ interface MockDraft {
   path: string;
   status: number | string;
   body: string;
+  touched: boolean;
 }
+
+type MockDraftField = "method" | "path" | "status" | "body";
 
 interface NewSandboxFormProps {
   services: ServiceInfo[];
@@ -82,14 +86,36 @@ export function NewSandboxForm({ services, externals, onCreated }: NewSandboxFor
   }
 
   function addMockRow() {
+    const host = externals[0]?.id ?? DEFAULT_EXTERNAL_HOST_ID;
+    const defaults = defaultsForHost(host);
     setMocks((previous) => [
       ...previous,
-      { host: externals[0]?.id ?? "external-payments", method: "POST", path: "/charge", status: 402, body: "" },
+      {
+        host,
+        method: defaults.method,
+        path: defaults.path,
+        status: defaults.status,
+        body: defaults.body,
+        touched: false,
+      },
     ]);
   }
 
-  function updateMockRow(index: number, field: keyof MockDraft, value: string) {
-    setMocks((previous) => previous.map((row, i) => (i === index ? { ...row, [field]: value } : row)));
+  function updateMockHost(index: number, host: string) {
+    setMocks((previous) =>
+      previous.map((row, i) => {
+        if (i !== index) return row;
+        if (row.touched) return { ...row, host };
+        const defaults = defaultsForHost(host);
+        return { ...row, host, method: defaults.method, path: defaults.path, status: defaults.status, body: defaults.body };
+      })
+    );
+  }
+
+  function updateMockRow(index: number, field: MockDraftField, value: string) {
+    setMocks((previous) =>
+      previous.map((row, i) => (i === index ? { ...row, [field]: value, touched: true } : row))
+    );
   }
 
   function removeMockRow(index: number) {
@@ -209,7 +235,7 @@ export function NewSandboxForm({ services, externals, onCreated }: NewSandboxFor
         <span>initial mocks</span>
         {mocks.map((mock, index) => (
           <div key={index} className="rule-form-row">
-            <select value={mock.host} onChange={(event) => updateMockRow(index, "host", event.target.value)}>
+            <select value={mock.host} onChange={(event) => updateMockHost(index, event.target.value)}>
               {(externals.length > 0 ? externals : [{ id: "external-payments" }, { id: "external-weather" }]).map(
                 (external) => (
                   <option key={external.id} value={external.id}>
